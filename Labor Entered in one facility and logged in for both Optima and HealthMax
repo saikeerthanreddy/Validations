@@ -1,0 +1,51 @@
+with test as 
+(
+
+select a.UserID,a.ActivityDate,a.FacilityID,a.PayrollCompanyID,b.EmployeeNumber
+ from Smart_DWExport.dbo.TherapistTimePayrollBatchFacility a
+inner join Smart_DWExport.dbo.Users b
+on a.userid = b.userid
+inner join Smart_DWExport.dbo.Customer c
+on a.facilityId = c.CustomerID
+where ActivityDate >= '10-01-2018' and EmployeeNumber not like '%facility%' and EmployeeNumber not like '%contract%' 
+
+)
+,test1 as 
+(
+select a.*,b.PLCY_PYRL_CO,CONCAT(b.PLCY_PYRL_CO,a.EmployeeNumber) as Employee_No 
+from test a left join [EDW_DM].dbo.[PYRL_CO_PAY_MAP] b on a.PayrollCompanyID = b.hm_pyrl_co_id
+
+)
+,TEST2 AS
+(
+SELECT FacilityID,Employee_No,YEAR(ActivityDate) AS activityyear,MONTH(ActivityDate) as activity_month,COUNT(USERID) as Cnt
+
+FROM test1
+GROUP BY  FacilityID,Employee_No,YEAR(ActivityDate),MONTH(ActivityDate)
+)
+
+,test3 as 
+(
+
+select  a.Labor_ID,a.Person_ID,b.EmployeeNo,c.FacilityID,a.LaborDate,FORMAT(LABORDATE,'MMM') AS MNTH
+from ROX_HPH.dbo.Labor a
+inner join ROX_HPH.dbo.Person b
+on a.Person_ID = b.Person_ID
+inner join ROX_HPH.dbo.Facility c
+on a.Facility_ID = c.Facility_ID
+where LaborDate >=  '10-01-2018'
+and EmployeeNo not like '%facility%' and EmployeeNo not like '%contract%'
+)
+,test4 as 
+( 
+SELECT FacilityID,EmployeeNo,YEAR(LaborDate) as Laboryear,MONTH(LaborDate) as laborMonth,COUNT(PERSON_ID) as person_cnt
+FROM test3
+GROUP BY FacilityID,EmployeeNo,YEAR(LaborDate),MONTH(LaborDate)
+)
+
+select a.FacilityID,a.Employee_No,a.activityyear,a.activity_month,a.Cnt as HM_count,b.person_cnt as Optima_Count,a.Cnt+b.person_cnt as totalcount 
+from test2 a inner join test4 b on
+a.FacilityID = b.FacilityID and
+a.Employee_No = b.EmployeeNo and
+a.activityyear = b.Laboryear and
+a.activity_month = b.laborMonth
