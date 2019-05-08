@@ -1,0 +1,4 @@
+select [CO ID EE ID],[First Name],[Last Name] ,[Hire Date],[Termination Date],[Employment Type],
+[Pay Type] as [PayType],[Base Rate] as [Pay Rate]
+from EDW_DM.dbo.PLCTY_EMP 
+order by [CO ID EE ID]
