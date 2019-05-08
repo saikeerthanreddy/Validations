@@ -1,0 +1,20 @@
+with test as
+(
+select a.UserID,b.firstname,b.lastname,a.EffectiveDate,a.EffectiveThruDate,a.DefaultHourlyRate,a.PRN,a.SalaryYN,
+a.PartTime,a.FullTime,b.EmployeeNumber,b.Active,b.PayrollCID,
+CONCAT(c.PLCY_PYRL_CO,b.EmployeeNumber) as Employee_No 
+from Smart_DWExport.dbo.UserCost a
+inner join Smart_DWExport.dbo.Users b
+on a.UserID = b.UserID
+inner join [EDW_DM].dbo.[PYRL_CO_PAY_MAP] c on b.payrollcid = c.HM_PYRL_CO_ID
+where b.EmployeeNumber not  like '%[^0-9]%' and b.EmployeeNumber not like ''
+)
+
+select a.userid,a.firstname,a.lastname,a.effectivedate,a.effectivethrudate,b.[Employment Type],
+case when a.SalaryYN = 'N' then 'Hourly'else 'Salary' end as PayType,a.defaulthourlyrate as PayRate
+from test a 
+inner join [EDW_DM].[dbo].[PLCTY_EMP] b
+ on a.Employee_No = b.[CO ID EE ID]
+ group by a.userid,a.effectivedate,a.effectivethrudate,a.defaulthourlyrate,a.prn,a.salaryYN,a.parttime,
+ a.fulltime,a.active,b.[CO ID EE ID],b.[Employment Type],a.firstname,a.lastname
+ order by a.userid,a.effectivethrudate asc;
