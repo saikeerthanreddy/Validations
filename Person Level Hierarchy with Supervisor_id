@@ -30,5 +30,5 @@ select * from level1
 )
 
 
-select * ,GETDATE() as inserteddate,null as updated_date,null as updated  --into PersonLevel_Hierarchy   from Person_hierarchy
+select * ,GETDATE() as inserteddate,null as updated_date,null as updated  
 from Person_hierarchy
