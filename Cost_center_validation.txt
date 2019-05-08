@@ -1,0 +1,22 @@
+with customer_ as 
+(
+select b.Name,a.companyname,
+case when displaycustomerid like '' then '' else RIGHT('00000'+displaycustomerid,5) end as displaycustomerid--,displaycustomerid
+,b.ExportKey,
+ 
+case  when a.displaycustomerid is null and b.exportkey like '' then 'Displaycustomerid_Null&ExportKeyBlank'
+	  when a.displaycustomerid  like '' and b.exportkey is null then 'Displaycustomerid_Blank&ExportKeyNull'
+	  when a.displaycustomerid is null and b.exportkey is null then 'Displaycustomerid_Null&ExportKeynull'
+		when a.displaycustomerid is null and b.exportkey is not null then 'Displaycustomerid_Null&ExportKeyNotNull'
+		when a.displaycustomerid is not null and b.exportkey is null then 'Displaycustomerid_NotNull&ExportKeyNull'
+end as reson
+from Smart_DWExport.dbo.Customer a 
+full outer join ROX_HPH.dbo.Facility b on RIGHT('00000'+displaycustomerid,5) = b.ExportKey
+where (a.DisplayCustomerID is  null and b.exportkey is not null ) or (a.DisplayCustomerID is not null and b.exportkey is  null )
+
+)
+
+select  *,
+getdate() as inserteddate,null as updateddate,null as updated--
+from customer_ 
+order by displaycustomerid asc,ExportKey asc
