@@ -1,0 +1,13 @@
+with test as
+(
+select customerid,max(EffectiveDate) as EffectiveDate 
+from smart_dwexport.dbo.Customer_Contract
+group by CustomerID
+)
+select c.companyname,a.customerid,a.EffectiveDate,case when b.ToDate is null then '2099-12-31' end as ToDate,
+b.ServiceType,GETDATE() as inserteddate,null as updated_date,null as updated 
+from test a 
+left join smart_dwexport.dbo.Customer_Contract b on a.customerid = b.CustomerID and 
+a.EffectiveDate = b.EffectiveDate
+left join smart_dwexport.dbo.Customer c on a.customerid = c.customerid 
+WHERE b.ToDate is  null and b.servicetype is null
