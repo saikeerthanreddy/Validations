@@ -1,0 +1,25 @@
+with test as 
+(
+select companyName,count(companyName)as duplicates,Active 
+from  Smart_DWExport.dbo.Customer
+group by companyName,Active
+having count(companyName)>1
+)
+,test1 as
+(
+select a.companyname,a.active,b.customerID,--c.servicetype,
+getdate() InsertedDate,
+NULL UpdatedDate,
+NULL Updated
+from test a left join Smart_DWExport.dbo.Customer b on a.companyname = b.companyname 
+)
+,TEST3 AS 
+(
+select distinct cusTOMERid,ServiceType FROM  Smart_DWExport.dbo.Customer_Contract
+)
+
+
+select a.*,c.ServiceType -- into app_wrk.dbo. HM_dupcompanyname
+from test1 a
+left join TEST3 c on a.customerId = c.customerId
+where Active = 1
