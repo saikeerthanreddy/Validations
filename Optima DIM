@@ -1,0 +1,12 @@
+select a.person_id,b.FirstName,b.LastName,a.StartDate,a.EndDate,b.isstaff,
+a.employeetype as EmployementType ,
+case when a.RateType = 'hour' then 'Hourly'
+       when a.RateType = 'year' then 'Salary'
+	   end as PayType,
+	   a.Rate as PayRate
+from ROX_HPH.dbo.Employee a
+inner join ROX_HPH.dbo.Person b 
+on a.Person_ID = b.Person_ID
+where b.IsStaff = 1 and  b.employeeno not  like '%facility%' 
+and b.employeeno not like '%contractor%' and b.employeeno not like ''
+order by Person_ID
