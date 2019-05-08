@@ -1,0 +1,34 @@
+with level1 as (
+select Person_ID,FirstName,LastName,StaffTitle,SupervisorPerson_ID , 3 as level ,
+null as level1_personId,null as level1_supervisorID,
+null as level2_personID,null as level2_SupervisorID,
+Person_ID as level3_personID,SupervisorPerson_ID as level3_supervisorID
+from  ROX_HPH.dbo.Person where SupervisorPerson_ID  is null
+)
+, level2 as (
+select a.Person_ID,a.FirstName,a.LastName,a.StaffTitle,a.SupervisorPerson_ID,level-1 as level ,
+null as level1_personId,null as level1_supervisorId,
+a.Person_ID as level2_personID,a.SupervisorPerson_ID as level2_SupervisorID,
+b.Person_ID as level3_personID,b.SupervisorPerson_ID as level3_supervisorID
+from  ROX_HPH.dbo.Person a
+inner join  level1 b on a.SupervisorPerson_ID = b.Person_ID 
+)
+
+, Person_hierarchy as (
+select a.Person_ID,a.FirstName,a.LastName,a.StaffTitle,a.SupervisorPerson_ID,level-1 as level,
+a.Person_ID as level1_personId,a.SupervisorPerson_ID as level1_supervisorId,
+b.Person_ID as level2_personID,b.SupervisorPerson_ID as level2_SupervisorID,
+level3_personID,level3_supervisorID 
+from  ROX_HPH.dbo.Person a inner join level2 b on a.SupervisorPerson_ID = b.Person_ID
+
+
+union all
+
+select * from level2
+union all
+select * from level1
+)
+
+
+select * ,GETDATE() as inserteddate,null as updated_date,null as updated  --into PersonLevel_Hierarchy   from Person_hierarchy
+from Person_hierarchy
