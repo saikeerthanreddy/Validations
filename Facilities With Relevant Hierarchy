@@ -1,0 +1,40 @@
+
+
+with test as 
+(
+SELECT 
+	a.TierNode_ID as level1_TiernodeID,
+	a.OwningTierNode_ID as level1_OwningTierNode_ID,
+	a.Tier_ID as level1_TierID,
+	a.Name as level1_name,
+	a.Person_ID as level1_PersonID,
+	CONCAT(p1.FirstName,' ',p1.LastName) as level1_Tier1OwnerName,
+	b.TierNode_ID as level2_TiernodeID,
+	b.OwningTierNode_ID as level2_OwningTierNode_ID,
+	b.Tier_ID as level2_TierID,
+	b.Name as level2_name,
+	b.Person_ID as level2_PersonID,
+	CONCAT(p2.FirstName,' ',p2.LastName) as  level2_Tier2OwnerName,
+	c.TierNode_ID as  level3_TiernodeID,
+	c.OwningTierNode_ID as level3_OwningTierNode_ID ,
+	c.Tier_ID as level3_TierID,
+	c.Name as level3_name,
+	c.Person_ID level3_PersonID,
+	CONCAT(p3.FirstName,' ',p3.LastName) as level3_Tier3OwnerName
+FROM rox_hph.dbo.TierNode a
+LEFT JOIN rox_hph.dbo.tiernode b
+on a.TierNode_ID =  b.OwningTierNode_ID 
+LEFT JOIN rox_hph.dbo.TierNode c
+on b.TierNode_ID = c.OwningTierNode_ID
+LEFT JOIN rox_hph.dbo.Person p1
+ON a.Person_ID = p1.Person_ID
+LEFT JOIN rox_hph.dbo.Person p2
+ON b.Person_ID = p2.Person_ID
+LEFT JOIN rox_hph.dbo.Person p3
+ON c.Person_ID = p3.Person_ID
+WHERE a.Tier_ID = 1
+AND b.Tier_ID = 2
+AND c.Tier_ID = 3
+)
+select a.Facility_ID,a.FacilityCode,a.FacilityID,a.Name as facilityname,a.TierNode_ID ,b.* 
+from ROX_HPH.dbo.Facility a left join test b on a.TierNode_ID = b.level3_TiernodeID where level1_name like '%long term%'
