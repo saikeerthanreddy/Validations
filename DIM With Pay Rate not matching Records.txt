@@ -1,0 +1,28 @@
+with test as
+(
+select  
+a.[CO ID EE ID],b.Employee_No as HM_EmployeeNo,c.employeeNo as Optima_EmployeeNo,b.PayrollCID,
+a.[First Name],a.[Last Name],a.[Employee Status],c.IsInactive as optima_IsInactive,b.Active as HM_Active,
+b.UserID as HM_UserId,
+c.person_id as Optima_PersonID,
+a.[Pay Type] as [PLCTY_PayType],b.PayType as HM_Paytype,c.PayType as Optima_paytype
+,a.[Base Rate] as [PLCTY_Pay Rate],b.DefaultHourlyRate as HM_PayRate,c.PayRate as Optima_PayRate,
+a.[Employment Type] as Plcty_EmploymentType,b.EmployeeType as HM_EmployeeType,c.EmployementType as Optima_EmployementType,
+a.[Hire Date] as PLCTY_HIREDATE,a.[Termination Date] as PLCTY_Enddate
+,b.EffectiveDate as HM_EffectiveDate,b.EffectiveThruDate as HM_EffectiveThruDate,
+c.StartDate as Optima_StartDate,c.EndDate as Optima_EndDate,
+c.isstaff as Optima_ISstaff
+
+from EDW_DM.dbo.PLCTY_EMP a
+
+full outer join 
+		app_wrk.dbo.HM_EMPPayrate b 
+		on a.[CO ID EE ID] = b.Employee_No
+full outer join 
+		app_wrk.dbo.Optima_EMPPayrate c
+		on a.[CO ID EE ID] = c.employeeNo
+where a.[Employee Status] = 'A'
+)
+
+select * from test
+where [PLCTY_Pay Rate] != Optima_PayRate or [PLCTY_Pay Rate] != HM_PayRate  

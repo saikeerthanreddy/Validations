@@ -1,0 +1,23 @@
+with test as
+			(
+			select a.UserID,b.firstname,b.lastname,a.EffectiveDate,a.EffectiveThruDate,a.DefaultHourlyRate,
+			a.PRN,a.SalaryYN,a.PartTime,a.FullTime,b.EmployeeNumber,b.Active,b.PayrollCID,
+			case when a.SalaryYN = 'N' then 'Hourly'else 'Salary' end as PayType,
+				case when a.PRN = 'Y' then 'PRN'
+						 When a.PartTime = 'Y' then 'PT'
+						 when a.FullTime = 'Y' then 'FT'
+					else null end as EmployeeType,
+			CONCAT(c.PLCY_PYRL_CO,b.EmployeeNumber) as Employee_No 
+			from Smart_DWExport.dbo.UserCost a
+			full outer join Smart_DWExport.dbo.Users b
+			on a.UserID = b.UserID
+			inner join [EDW_DM].dbo.[PYRL_CO_PAY_MAP] c on b.payrollcid = c.HM_PYRL_CO_ID
+			where b.EmployeeNumber not  like '%[^0-9]%' and b.EmployeeNumber not like ''  and a.EffectiveDate is not null and c.PLCY_PYRL_CO not like '%-1%'
+			) 
+			,test1 as
+			(
+			select * ,rank() over (partition by Employee_No order by effectiveDate desc) as Rank_ 
+			from test
+)
+select * from test1
+where rank_ =1 and active = 'y' 

@@ -1,0 +1,43 @@
+
+with test as
+(
+		select * from 
+		 (
+		select a.person_id,b.FirstName,b.LastName,a.startdate,a.EndDate,b.isstaff,b.IsInactive,
+		a.employeetype as EmployementType ,b.employeeNo,
+		case when a.RateType = 'hour' then 'Hourly'
+					   when a.RateType = 'year' then 'Salary'
+					   end as PayType,
+					   a.Rate as PayRate
+		,rank() over ( partition by a.person_id order by a.startdate desc) as rank_	  
+		from ROX_HPH.dbo.Employee a
+		inner join ROX_HPH.dbo.Person b 
+		on a.Person_ID = b.Person_ID
+		where b.IsStaff = 1 and  b.employeeno  not  like '%facility%' and b.employeeno not like '%contractor%' and 
+		b.employeeno  not  like '%INFORMATION TECHNOLOGY%'and b.employeeno not like '' and a.employeetype not like '%CONTRACT%'
+		) a 
+		where rank_ = 1 and IsInactive = '0' 
+		)
+		, test1 as
+		(
+		select person_id,FirstName,LastName,startdate,EndDate,isstaff,IsInactive,EmployementType,employeeNo,PayType,(PayRate)/(2080) as payrate
+		 from test
+		 where  len(PayRate) > 5
+		)
+		,test2 as
+		(
+		select  a.person_id,a.FirstName,a.LastName,a.startdate,a.EndDate,a.isstaff,a.IsInactive,a.EmployementType,a.employeeNo,a.PayType,cast(cast(a.payrate as decimal(10, 2)) as varchar(255)) as payrate from test1 a
+		left join test b
+		on a.Person_ID = b.Person_ID and
+		 a.FirstName = b.FirstName and a.LastName = b.LastName
+	    )
+		,test3 as 
+		(
+		select a.person_id,a.FirstName,a.LastName,a.startdate,a.EndDate,a.isstaff,a.IsInactive,a.EmployementType,a.employeeNo,a.PayType,a.payrate  from test a
+	     where     len(PayRate) <= 5 or PayRate is  null
+		)
+		
+select *from test2 
+union all
+ select * from test3
+		
