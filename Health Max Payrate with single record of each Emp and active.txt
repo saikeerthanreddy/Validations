@@ -18,6 +18,6 @@ with test as
 			(
 			select * ,rank() over (partition by Employee_No order by effectiveDate desc) as Rank_ 
 			from test
-)
+                        )
 select * from test1
 where rank_ =1 and active = 'y' 
