@@ -1,0 +1,36 @@
+with test as
+(
+select [co id ee id] as employeeno, CASE WHEN [Base Rate] > 1000 THEN [Base Rate]/2080 ELSE [Base Rate] END Rate,
+isnull([Hire Date],'1900-01-01') StartDate, isnull([Termination Date],'2099-12-31') EndDate, 
+ 'Plcty' Source,'' as id,[Employee Status] as status_Active,[Employment Type] as EmploymentType,a.[Pay Type]  as paytype,null as EMP_KEY,null as EMP_SALT
+from edw_dm.dbo.PLCTY_EMP a
+
+union all
+select p.employeeno, CASE WHEN e.rate > 1000 THEN e.rate/2080 ELSE e.rate END Rate, e.StartDate, e.EndDate,
+ 'Opt' Source,cast(p.person_id as nvarchar) as id, CASE WHEN p.IsInactive =1  THEN 'N' ELSE 'y' END status_Active,e.employeetype,
+case when e.RateType = 'hour' then 'Hourly'
+			   when e.RateType = 'year' then 'Salary'
+			   end as PayType,null as EMP_KEY,null as EMP_SALT
+from rox_hph.dbo.person p
+inner join rox_hph.dbo.employee e
+on p.Person_ID = e.Person_ID
+
+union all
+
+select concat(c.PLCY_PYRL_CO,b.EmployeeNumber)as employeeno ,a.defaultHourlyRate as Rate, a.EffectiveDate, a.EffectiveThruDate ,
+ 'HM' Source,cast(a.UserID as nvarchar) as id,b.Active as status_Active,
+case when a.PRN = 'Y' then 'PRN'
+             When a.PartTime = 'Y' then 'PT'
+	         when a.FullTime = 'Y' then 'FT'
+	    else null end as EmployeeType,
+		case when a.SalaryYN = 'N' then 'Hourly'else 'Salary' end as PayType,null as EMP_KEY,null as EMP_SALT
+from Smart_DWExport.dbo.UserCost a
+inner join smart_dwexport.dbo.users b
+on a.UserID = b.UserID
+left join edw_dm.dbo.PYRL_CO_PAY_MAP c
+on b.PayrollCID = c.HM_PYRL_CO_ID
+)
+select employeeno,rate,StartDate,EndDate,Source,id,status_Active,EmploymentType,paytype,EMP_KEY,EMP_SALT
+from test
+where  employeeno not like '%[a-z]' and employeeno not like '%-%' and employeeno not like '%sup%' or employeeno is null 
+order by employeeno asc
